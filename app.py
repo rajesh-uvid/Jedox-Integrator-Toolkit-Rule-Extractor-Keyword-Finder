@@ -603,32 +603,45 @@ if nav_option == "📜 Rule Registry Extractor":
     tab1, tab2, tab3 = st.tabs(["🚀 JDS Extraction", "📄 Text Extraction", "🌐 HTML Extraction"])
 
     with tab1:
-        uploaded_jds = st.file_uploader("Upload .jds", type=['jds'], key="file_jds")
-        if uploaded_jds and uploaded_jds.name not in st.session_state.processed_files:
-            content = uploaded_jds.read().decode("utf-8", errors="ignore")
-            file_data = parse_jds(content, uploaded_jds.name)
-            if file_data:
-                add_data(file_data, uploaded_jds.name)
+        uploaded_jds = st.file_uploader("Upload .jds files", type=['jds'], accept_multiple_files=True, key="file_jds")
+        if uploaded_jds:
+            new_files = False
+            for f in uploaded_jds:
+                if f.name not in st.session_state.processed_files:
+                    content = f.read().decode("utf-8", errors="ignore")
+                    file_data = parse_jds(content, f.name)
+                    if file_data:
+                        add_data(file_data, f.name)
+                        new_files = True
+            if new_files:
                 st.rerun()
 
     with tab2:
-        uploaded_txt = st.file_uploader("Upload .txt", type=['txt'], key="file_txt")
-        if uploaded_txt and uploaded_txt.name not in st.session_state.processed_files:
-            content = uploaded_txt.read().decode("utf-8", errors="ignore")
-            file_data = parse_jedox_text(content, uploaded_txt.name)
-            if file_data:
-                add_data(file_data, uploaded_txt.name)
+        uploaded_txt = st.file_uploader("Upload .txt files", type=['txt'], accept_multiple_files=True, key="file_txt")
+        if uploaded_txt:
+            new_files = False
+            for f in uploaded_txt:
+                if f.name not in st.session_state.processed_files:
+                    content = f.read().decode("utf-8", errors="ignore")
+                    file_data = parse_jedox_text(content, f.name)
+                    if file_data:
+                        add_data(file_data, f.name)
+                        new_files = True
+            if new_files:
                 st.rerun()
 
     with tab3:
-        uploaded_html = st.file_uploader("Maximum of 48 Rules can be extracted", type=['htm', 'html'], key="file_html")
-        if uploaded_html and uploaded_html.name not in st.session_state.processed_files:
-            st.session_state.master_data = [] 
-            st.session_state.processed_files = []
-            content = uploaded_html.read().decode("utf-8", errors="ignore")
-            file_data = parse_jedox_dynamic(content, uploaded_html.name)
-            if file_data:
-                add_data(file_data, uploaded_html.name)
+        uploaded_html = st.file_uploader("Maximum of 48 Rules can be extracted", type=['htm', 'html'], accept_multiple_files=True, key="file_html")
+        if uploaded_html:
+            new_files = False
+            for f in uploaded_html:
+                if f.name not in st.session_state.processed_files:
+                    content = f.read().decode("utf-8", errors="ignore")
+                    file_data = parse_jedox_dynamic(content, f.name)
+                    if file_data:
+                        add_data(file_data, f.name)
+                        new_files = True
+            if new_files:
                 st.rerun()
 
     if st.session_state.master_data:
