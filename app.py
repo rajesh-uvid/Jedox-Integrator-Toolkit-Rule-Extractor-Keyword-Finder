@@ -297,23 +297,23 @@ def parse_xml_keyword_search(content, filename, search_values):
                     if end_of_tag_search and end_of_tag_search.group().startswith('/'):
                         just_opened_self_closing = True
         
-        for val in search_values:
-            if val in clean_line:
-                if context_stack:
-                    curr = context_stack[-1]
-                    c_type, c_name = curr["type"], curr["name"]
-                else:
-                    c_type, c_name = "Global/Other", "N/A"
-                    
-                all_results.append({
-                    "Project Name": project_name,
-                    "Source File": filename,
-                    "Line Number": line_idx,
-                    "Context Type": c_type,
-                    "Context Name": c_name,
-                    "Found Value": val,
-                    "Line Content": clean_line[:1000]
-                })
+        found_vals = [val for val in search_values if val in clean_line]
+        if found_vals:
+            if context_stack:
+                curr = context_stack[-1]
+                c_type, c_name = curr["type"], curr["name"]
+            else:
+                c_type, c_name = "Global/Other", "N/A"
+                
+            all_results.append({
+                "Project Name": project_name,
+                "Source File": filename,
+                "Line Number": line_idx,
+                "Context Type": c_type,
+                "Context Name": c_name,
+                "Found Value": ", ".join(found_vals),
+                "Line Content": clean_line[:1000]
+            })
         
         end_match = tag_end_pattern.search(clean_line)
         if end_match:
@@ -637,17 +637,17 @@ if nav_option == "📜 Rule Registry Extractor":
             if col in df.columns: df[col] = pd.to_numeric(df[col], errors='coerce')
 
         if search_keywords_rule:
-             def contains_keyword(text):
-                 if pd.isna(text): return False
-                 for kw in search_keywords_rule:
-                     if kw in str(text): return True
-                 return False
-             df = df[df['Rule'].apply(contains_keyword)]
+             def get_found_keywords(text):
+                 if pd.isna(text): return ""
+                 found = [kw for kw in search_keywords_rule if kw in str(text)]
+                 return ", ".join(found)
+             df['Found Value'] = df['Rule'].apply(get_found_keywords)
+             df = df[df['Found Value'] != ""]
 
         if len(df) > 0:
             df = df.sort_values(by=["Cube", "Position"])
             cols = df.columns.tolist()
-            primary_cols = [c for c in ['Position', 'ID', 'Rule', 'Active', 'Cube', 'File Source'] if c in cols]
+            primary_cols = [c for c in ['Position', 'ID', 'Rule', 'Found Value', 'Active', 'Cube', 'File Source'] if c in cols]
             df = df[primary_cols + [c for c in cols if c not in primary_cols]]
 
             st.dataframe(df, use_container_width=True, height=600)
